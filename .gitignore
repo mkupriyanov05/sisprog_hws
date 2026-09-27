@@ -1,4 +1,6 @@
 *.log
+backups/
+log/
 __pycache__/
 venv/
 node_modules/

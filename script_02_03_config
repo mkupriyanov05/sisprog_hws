@@ -1,0 +1,4 @@
+  SRC_DIR=/home/mkupriyanov05/semestr1_maga/log
+  DST_DIR=/home/mkupriyanov05/semestr1_maga/backups
+  MAX_BACKUPS=5
+  POLICY=oldest
