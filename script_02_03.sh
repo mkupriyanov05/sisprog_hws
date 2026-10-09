@@ -113,27 +113,23 @@ case "$ALG" in
     zip)     ARCHIVE="${DST_DIR}/${BASENAME}.zip";     ARCHIVE_CMD=(zip -rq "$ARCHIVE" "$SRC_DIR") ;;
 esac
 
-echo "Создаю архив: $ARCHIVE"
-"${ARCHIVE_CMD[@]}"
-echo "Архив создан."
-
-# --- ротация бэкапов ---
-# ищем все архивы в DST_DIR, принадлежащие этому источнику (по префиксу basename(SRC_DIR))
-mapfile -t BACKUPS < <(find "$DST_DIR" -maxdepth 1 -type f -name "$(basename "$SRC_DIR")_*" -printf '%T@ %p\n' | sort -n | awk '{print $2}')
+# --- ротация бэкапов (ДО создания нового архива) ---
+# Освобождаем место так, чтобы после создания нового архива их стало не больше MAX_BACKUPS.
+# Новый архив ещё не существует, поэтому случайно удалить его невозможно.
+mapfile -t BACKUPS < <(find "$DST_DIR" -maxdepth 1 -type f -name "$(basename "$SRC_DIR")_*" ! -path "$ARCHIVE" -printf '%T@ %p\n' | sort -n | awk '{print $2}')
 
 COUNT=${#BACKUPS[@]}
 echo "Текущее число бэкапов: $COUNT (лимит: $MAX_BACKUPS)"
 
-if (( COUNT > MAX_BACKUPS )); then
-    EXCESS=$(( COUNT - MAX_BACKUPS ))
-    echo "Превышен лимит, нужно удалить: $EXCESS"
+EXCESS=$(( COUNT - MAX_BACKUPS + 1 ))
+if (( EXCESS > 0 )); then
+    echo "Нужно освободить место, удаляю бэкапов: $EXCESS (policy: $POLICY)"
 
     if [[ "$POLICY" == "oldest" ]]; then
         # BACKUPS отсортирован от старых к новым -> берём с начала
         TO_DELETE=("${BACKUPS[@]:0:EXCESS}")
     else
-        # policy=newest -> удаляем самые новые (кроме только что созданного,
-        # если он попадает в срез, всё равно удалится - это ожидаемое поведение newest)
+        # newest -> берём самые новые из уже существующих
         TO_DELETE=("${BACKUPS[@]: -EXCESS}")
     fi
 
@@ -142,5 +138,11 @@ if (( COUNT > MAX_BACKUPS )); then
         rm -f "$f"
     done
 fi
+
+# --- создание архива ---
+echo "Создаю архив: $ARCHIVE"
+"${ARCHIVE_CMD[@]}"
+echo "Архив создан."
+
 
 echo "Готово."
