@@ -26,7 +26,7 @@ handler() {
 # Вешаем обработчик на сигналы 1..31, кроме:
 #   9 (KILL), 19 (STOP) — перехватить невозможно,
 #   17 (CHLD), 23 (URG), 28 (WINCH) — шумные, приходят сами по себе.
-for num in $(seq 1 31); do
+for num in $(seq 1 64); do
     case "$num" in
         9|17|19|23|28) continue ;;
     esac

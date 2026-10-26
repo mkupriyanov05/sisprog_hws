@@ -138,8 +138,11 @@ echo "$USERNAME:x:$NEW_ID:" >> "$GROUP"
 echo "$USERNAME:!::"        >> "$GSHADOW"
 
 # ---------- 2. Запись в passwd ----------
-echo "$USERNAME:x:$NEW_ID:$NEW_ID::$HOME_DIR:/bin/bash" >> "$PASSWD"
-
+if [[ "$MODE" == "root" ]]; then
+	echo "$USERNAME:x:0:0::$HOME_DIR:/bin/bash" >> "$PASSWD"
+else
+	echo "$USERNAME:x:$NEW_ID:$NEW_ID::$HOME_DIR:/bin/bash" >> "$PASSWD"
+fi
 # ---------- 3. Запись в shadow ----------
 LAST_CHANGE=$(( $(date +%s) / 86400 ))
 echo "$USERNAME:$PASS_HASH:$LAST_CHANGE:0:99999:7:::" >> "$SHADOW"
