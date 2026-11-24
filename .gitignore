@@ -6,3 +6,5 @@ venv/
 node_modules/
 .env
 
+prog_*
+!prog_*.c
